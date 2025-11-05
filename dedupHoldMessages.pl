@@ -13,6 +13,9 @@ my $UPDATE = 1;
 my %holdsHash;
 my @deleteArray;
 
+# Single persistent DB connection
+my $dbh = C4::Context->dbh;
+
 my $holds = &getPendingHolds();
 
 print "There are " . scalar(@$holds) . " records\n" if $DEBUG;
@@ -54,13 +57,15 @@ foreach my $id (@$messageIDs) {
 	&deleteMessage(@$id[0]);
 }
 
+# Disconnect once at the end
+$dbh->disconnect();
+
 exit;
 
 ############################################
 
 sub getPendingHolds() {
 
-	my $dbh = C4::Context->dbh;
         my $sth;
 
 	my $SQL = "select 
@@ -97,7 +102,6 @@ sub deleteMessage($) {
 
 	my $id = $_[0];
 
-	my $dbh = C4::Context->dbh;
         my $sth;
 
 	my $SQL = "update
@@ -124,15 +128,12 @@ sub deleteMessage($) {
 
 		$sth->finish();
 	}
-
-	$dbh->disconnect();	
 }
 
 ############################################
 
 sub getArticleRequests() {
 
-	my $dbh = C4::Context->dbh;
         my $sth;
 
 	my $SQL = "select 
